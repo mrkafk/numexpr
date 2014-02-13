@@ -488,8 +488,12 @@ stringcmp(const char *s1, const char *s2, npy_intp maxlen1, npy_intp maxlen2)
 }
 
 int
-stringcontains_old(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
+stringcontains(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
 {
+      printf("\n h %s\n", h);
+  printf("hlen %ld\n", hlen );
+  printf("n %s\n", n);
+  printf("nlen %ld\n", nlen);
     char* res = NULL;
     if(nlen > hlen)
         return 0;
@@ -516,7 +520,7 @@ stringcontains_old(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
 #include "gnulib/str-two-way.h"
 
 int
-stringcontains(const char *haystack_start, const char *needle_start,  npy_intp haystack_len, npy_intp needle_len)
+stringcontains2(const char *haystack_start, const char *needle_start,  npy_intp haystack_len, npy_intp needle_len)
 {
   // needle_len - Length of NEEDLE.
   // haystack_len - Known minimum length of HAYSTACK.
@@ -526,9 +530,9 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp h
   bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */
 
   printf("\nhaystack_start %s\n", haystack_start);
-  printf("haystack_len %d\n", haystack_len );
+  printf("haystack_len %ld\n", haystack_len );
   printf("needle_start %s\n", needle_start);
-  printf("needle_len %d\n", needle_len);
+  printf("needle_len %ld\n", needle_len);
 
   if(haystack_len<needle_len)
     return 0;
@@ -550,34 +554,19 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp h
     return 1;
 }
 
-  /* Reduce the size of haystack using strchr, since it has a smaller
-     linear coefficient than the Two-Way algorithm.  */
-
-
-/*  needle_len = needle - needle_start;
-  haystack = strchr (haystack_start + 1, *needle_start);
-  if (!haystack || __builtin_expect (needle_len == 1, 0))
-  {
-    printf("!haystack... => return 1");
-    return 1;
-}
-  needle -= needle_len;
-  haystack_len = (haystack > haystack_start + needle_len ? 1
-                  : needle_len + haystack_start - haystack);*/
-
-
-
   /* Perform the search.  Abstract memory is considered to be an array
      of 'unsigned char' values, not an array of 'char' values.  See
      ISO C 99 section 6.2.6.1.  */
   if (needle_len < LONG_NEEDLE_THRESHOLD)
   {
-    char* res = two_way_short_needle ((const unsigned char *) haystack,
+    int ptrcomp = NULL != two_way_short_needle ((const unsigned char *) haystack,
                                  haystack_len,
-                                 (const unsigned char *) needle, needle_len);
-    printf("\nneedle_len < LONG_NEEDLE_THRESHOLD,  two_way_short_needle: %s\n", res);
-    int ptrcomp = res != NULL ? 1 : 0;
-    printf("\nptrcomp %d", ptrcomp);
+                                 (const unsigned char *) needle, needle_len) 
+                  ? 1 : 0;
+    #ifdef DEBUG
+        printf("\nneedle_len < LONG_NEEDLE_THRESHOLD,  two_way_short_needle: %s\n", res);
+        printf("\nptrcomp %d", ptrcomp);
+    #endif
     return ptrcomp;
 }
   char* res = two_way_long_needle ((const unsigned char *) haystack, haystack_len,
