@@ -488,7 +488,7 @@ stringcmp(const char *s1, const char *s2, npy_intp maxlen1, npy_intp maxlen2)
 }
 
 int
-stringcontains(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
+stringcontains_old(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
 {
       printf("\n h %s\n", h);
   printf("hlen %ld\n", hlen );
@@ -520,18 +520,20 @@ stringcontains(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
 #include "gnulib/str-two-way.h"
 
 int
-stringcontains2(const char *haystack_start, const char *needle_start,  npy_intp haystack_len, npy_intp needle_len)
+stringcontains(const char *haystack_start, const char *needle_start,  npy_intp max_haystack_len, npy_intp max_needle_len)
 {
   // needle_len - Length of NEEDLE.
   // haystack_len - Known minimum length of HAYSTACK.
+  size_t haystack_len = fminl(max_haystack_len, strlen(haystack_start));
+  size_t needle_len = fminl(max_needle_len, strlen(needle_start));
 
   const char *haystack = haystack_start;
   const char *needle = needle_start;    
   bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */
 
-  printf("\nhaystack_start %s\n", haystack_start);
-  printf("haystack_len %ld\n", haystack_len );
-  printf("needle_start %s\n", needle_start);
+  printf("\n\nhaystack_start #%.20s#\n", haystack_start);
+  printf("haystack_len %ld\n", haystack_len);
+  printf("needle_start #%.20s#\n", needle_start);
   printf("needle_len %ld\n", needle_len);
 
   if(haystack_len<needle_len)
@@ -559,19 +561,19 @@ stringcontains2(const char *haystack_start, const char *needle_start,  npy_intp 
      ISO C 99 section 6.2.6.1.  */
   if (needle_len < LONG_NEEDLE_THRESHOLD)
   {
-    int ptrcomp = NULL != two_way_short_needle ((const unsigned char *) haystack,
+    char *res = two_way_short_needle ((const unsigned char *) haystack_start,
                                  haystack_len,
-                                 (const unsigned char *) needle, needle_len) 
-                  ? 1 : 0;
-    #ifdef DEBUG
-        printf("\nneedle_len < LONG_NEEDLE_THRESHOLD,  two_way_short_needle: %s\n", res);
+                                 (const unsigned char *) needle_start, needle_len) ;
+//    #ifdef DEBUG
+    int ptrcomp = res != NULL;
+        printf("\nneedle_len < LONG_NEEDLE_THRESHOLD,  two_way_short_needle: %.20s\n", res);
         printf("\nptrcomp %d", ptrcomp);
-    #endif
+  //  #endif
     return ptrcomp;
 }
   char* res = two_way_long_needle ((const unsigned char *) haystack, haystack_len,
                               (const unsigned char *) needle, needle_len);
-  printf("\ntwo_way_long_needle: %s\n", res);
+  printf("\ntwo_way_long_needle: %.20s\n", res);
   int ptrcomp2 = res != NULL ? 1 : 0;
   printf("\nptrcomp2 %d", ptrcomp2);
   return ptrcomp2;
