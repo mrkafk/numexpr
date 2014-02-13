@@ -488,7 +488,7 @@ stringcmp(const char *s1, const char *s2, npy_intp maxlen1, npy_intp maxlen2)
 }
 
 int
-stringcontains(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
+stringcontains_old(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
 {
     char* res = NULL;
     if(nlen > hlen)
@@ -504,6 +504,63 @@ stringcontains(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
     free(needle);
     return res != NULL;
 }
+
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+
+#define RETURN_TYPE char*
+#define AVAILABLE(h, h_l, j, n_l)                       \
+  (!memchr ((h) + (h_l), '\0', (j) + (n_l) - (h_l))     \
+   && ((h_l) = (j) + (n_l)))
+#include "gnulib/str-two-way.h"
+
+int
+stringcontains(const char *haystack_start, const char *needle_start,  npy_intp haystack_len, npy_intp needle_len)
+{
+  // needle_len - Length of NEEDLE.
+  // haystack_len - Known minimum length of HAYSTACK.
+
+  const char *haystack = haystack_start;
+  const char *needle = needle_start;    
+  bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */
+
+  /* Determine length of NEEDLE, and in the process, make sure
+     HAYSTACK is at least as long (no point processing all of a long
+     NEEDLE if HAYSTACK is too short).  */
+  while (*haystack && *needle)
+    ok &= *haystack++ == *needle++;
+  if (*needle)
+    return 0;
+  if (ok)
+    return 1;
+
+  /* Reduce the size of haystack using strchr, since it has a smaller
+     linear coefficient than the Two-Way algorithm.  */
+  needle_len = needle - needle_start;
+  haystack = strchr (haystack_start + 1, *needle_start);
+  if (!haystack || __builtin_expect (needle_len == 1, 0))
+    return 1;
+  needle -= needle_len;
+  haystack_len = (haystack > haystack_start + needle_len ? 1
+                  : needle_len + haystack_start - haystack);
+
+  /* Perform the search.  Abstract memory is considered to be an array
+     of 'unsigned char' values, not an array of 'char' values.  See
+     ISO C 99 section 6.2.6.1.  */
+  if (needle_len < LONG_NEEDLE_THRESHOLD)
+  {
+    char* res = two_way_short_needle ((const unsigned char *) haystack,
+                                 haystack_len,
+                                 (const unsigned char *) needle, needle_len);
+    return res != NULL;
+}
+  char* res = two_way_long_needle ((const unsigned char *) haystack, haystack_len,
+                              (const unsigned char *) needle, needle_len);
+  return res != NULL;
+
+}
+
 
 
 /* Get space for VM temporary registers */
