@@ -530,22 +530,25 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp h
   printf("needle_start %s\n", needle_start);
   printf("needle_len %d\n", needle_len);
 
+  if(haystack_len<needle_len)
+    return 0;
+
   /* Determine length of NEEDLE, and in the process, make sure
      HAYSTACK is at least as long (no point processing all of a long
      NEEDLE if HAYSTACK is too short).  */
 
-
-/*  while (*haystack && *needle)
+    size_t si = 0;
+  while (*haystack && *needle && si < needle_len)
+  {
     ok &= *haystack++ == *needle++;
-  if (*needle)
-  { printf("*needle => return 0");
-    return 0;
+    si++;
 }
+
   if (ok)
   {
-    printf("ok => return 1");
+    printf("needle is prefix of haystack => return 1");
     return 1;
-}*/
+}
 
   /* Reduce the size of haystack using strchr, since it has a smaller
      linear coefficient than the Two-Way algorithm.  */
