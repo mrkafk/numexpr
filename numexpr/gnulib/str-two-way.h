@@ -67,9 +67,6 @@
 # define LONG_NEEDLE_THRESHOLD SIZE_MAX
 #endif
 
-#ifndef MAX
-# define MAX(a, b) ((a < b) ? (b) : (a))
-#endif
 
 #ifndef CANON_ELEMENT
 # define CANON_ELEMENT(c) c
@@ -257,7 +254,7 @@ two_way_short_needle (const unsigned char *haystack, size_t haystack_len,
       while (AVAILABLE (haystack, haystack_len, j, needle_len))
         {
           /* Scan for matches in right half.  */
-          i = MAX (suffix, memory);
+          i = fmaxl (suffix, memory);
           while (i < needle_len && (CANON_ELEMENT (needle[i])
                                     == CANON_ELEMENT (haystack[i + j])))
             ++i;
@@ -286,7 +283,7 @@ two_way_short_needle (const unsigned char *haystack, size_t haystack_len,
     {
       /* The two halves of needle are distinct; no extra memory is
          required, and any mismatch results in a maximal shift.  */
-      period = MAX (suffix, needle_len - suffix) + 1;
+      period = fmaxl (suffix, needle_len - suffix) + 1;
       j = 0;
       while (AVAILABLE (haystack, haystack_len, j, needle_len))
         {
@@ -379,7 +376,7 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
             }
           /* Scan for matches in right half.  The last byte has
              already been matched, by virtue of the shift table.  */
-          i = MAX (suffix, memory);
+          i = fmaxl (suffix, memory);
           while (i < needle_len - 1 && (CANON_ELEMENT (needle[i])
                                         == CANON_ELEMENT (haystack[i + j])))
             ++i;
@@ -409,7 +406,7 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
       /* The two halves of needle are distinct; no extra memory is
          required, and any mismatch results in a maximal shift.  */
       size_t shift;
-      period = MAX (suffix, needle_len - suffix) + 1;
+      period = fmaxl (suffix, needle_len - suffix) + 1;
       j = 0;
       while (AVAILABLE (haystack, haystack_len, j, needle_len))
         {
@@ -448,5 +445,5 @@ two_way_long_needle (const unsigned char *haystack, size_t haystack_len,
 #undef AVAILABLE
 #undef CANON_ELEMENT
 #undef CMP_FUNC
-#undef MAX
+#undef fmaxl
 #undef RETURN_TYPE

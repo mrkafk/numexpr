@@ -183,10 +183,18 @@ class test_numexpr(TestCase):
         res = evaluate('contains("test abc here", needles)')
         assert_equal(res, [True, False, False, False, False, False, True, True])
 
-    def test_str_contains_withemptystr(self):
+    def test_str_contains_basic5(self):
+        needles =  array(['abc', 'ab c', ' abc', ' abc ', '\tabc', 'c h'])
+        res = evaluate('contains("test abc here", needles)')
+        assert_equal(res, [True, False, True, True, False, True])
+
+    def test_str_contains_withemptystr1(self):
         withemptystr = array(['abc', 'def', ''])
         res = evaluate('contains("abcd", withemptystr)')        
         assert_equal(res, [True, False, True])
+
+    def test_str_contains_withemptystr2(self):
+        withemptystr = array(['abc', 'def', ''])
         res = evaluate('contains(withemptystr, "")')
         assert_equal(res, [True, True, True])
 

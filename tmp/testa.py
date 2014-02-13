@@ -18,6 +18,13 @@ import numexpr as ne
 
 # needles =  np.array(['abc', 'def', 'aterr', 'oot', 'zu', 'ab c', ' abc', 'abc'])
 # needles =  np.array([' abc', 'abc'])
-needles =  np.array(['abc', 'ab c', ' abc', 'abc'])
+
+# FAILS
+# needles =  np.array(['abc', 'ab c', ' abc', 'abc'])
+# res = ne.evaluate('contains("test abc here", needles)')
+# print res
+
+
+needles =  np.array(['abc', 'ab c', ' xyz', 'abc'])
 res = ne.evaluate('contains("test abc here", needles)')
 print res
