@@ -525,25 +525,44 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp h
   const char *needle = needle_start;    
   bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */
 
+  printf("\nhaystack_start %s\n", haystack_start);
+  printf("haystack_len %d\n", haystack_len );
+  printf("needle_start %s\n", needle_start);
+  printf("needle_len %d\n", needle_len);
+
   /* Determine length of NEEDLE, and in the process, make sure
      HAYSTACK is at least as long (no point processing all of a long
      NEEDLE if HAYSTACK is too short).  */
-  while (*haystack && *needle)
+
+
+/*  while (*haystack && *needle)
     ok &= *haystack++ == *needle++;
   if (*needle)
+  { printf("*needle => return 0");
     return 0;
+}
   if (ok)
+  {
+    printf("ok => return 1");
     return 1;
+}*/
 
   /* Reduce the size of haystack using strchr, since it has a smaller
      linear coefficient than the Two-Way algorithm.  */
-  needle_len = needle - needle_start;
+
+
+/*  needle_len = needle - needle_start;
   haystack = strchr (haystack_start + 1, *needle_start);
   if (!haystack || __builtin_expect (needle_len == 1, 0))
+  {
+    printf("!haystack... => return 1");
     return 1;
+}
   needle -= needle_len;
   haystack_len = (haystack > haystack_start + needle_len ? 1
-                  : needle_len + haystack_start - haystack);
+                  : needle_len + haystack_start - haystack);*/
+
+
 
   /* Perform the search.  Abstract memory is considered to be an array
      of 'unsigned char' values, not an array of 'char' values.  See
@@ -553,11 +572,17 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp h
     char* res = two_way_short_needle ((const unsigned char *) haystack,
                                  haystack_len,
                                  (const unsigned char *) needle, needle_len);
-    return res != NULL;
+    printf("\nneedle_len < LONG_NEEDLE_THRESHOLD,  two_way_short_needle: %s\n", res);
+    int ptrcomp = res != NULL ? 1 : 0;
+    printf("\nptrcomp %d", ptrcomp);
+    return ptrcomp;
 }
   char* res = two_way_long_needle ((const unsigned char *) haystack, haystack_len,
                               (const unsigned char *) needle, needle_len);
-  return res != NULL;
+  printf("\ntwo_way_long_needle: %s\n", res);
+  int ptrcomp2 = res != NULL ? 1 : 0;
+  printf("\nptrcomp2 %d", ptrcomp2);
+  return ptrcomp2;
 
 }
 

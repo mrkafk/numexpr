@@ -168,6 +168,8 @@ class test_numexpr(TestCase):
         assert_equal(res, [True, False, False, False, False])
         res = evaluate('contains("abcd", haystack)')
         assert_equal(res, [True, False, False, False, False])
+
+    def test_str_contains_withemptystr(self):
         withemptystr = array(['abc', 'def', ''])
         res = evaluate('contains("abcd", withemptystr)')        
         assert_equal(res, [True, False, True])
