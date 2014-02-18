@@ -487,30 +487,6 @@ stringcmp(const char *s1, const char *s2, npy_intp maxlen1, npy_intp maxlen2)
     return 0;
 }
 
-int
-stringcontains_works(const char *h, const char *n,  npy_intp hlen, npy_intp nlen)
-{
-    hlen = fminl(hlen, strlen(h));
-    nlen = fminl(nlen, strlen(n));
-      printf("\n h %.20s\n", h);
-  printf("hlen %ld\n", hlen );
-  printf("n %.20s\n", n);
-  printf("nlen %ld\n", nlen);
-    char* res = NULL;
-    if(nlen > hlen)
-        return 0;
-    char *haystack = (char*) malloc((hlen+1)*sizeof(char));
-    char *needle = (char*) malloc((nlen+1)*sizeof(char));
-    strncpy(haystack, h, hlen*sizeof(char));
-    strncpy(needle, n, nlen*sizeof(char));
-    haystack[hlen] = '\0';
-    needle[nlen] = '\0';
-    res = strstr(haystack, needle);
-    free(haystack);
-    free(needle);
-    return res != NULL;
-}
-
 
 // Based on Gnulib/strstr.c
 
@@ -533,6 +509,16 @@ stringcontains_works(const char *h, const char *n,  npy_intp hlen, npy_intp nlen
   ((Haystack_Len) >= (J) + (Needle_Len))
 
 #include "gnulib/str-two-way.h"
+#include <syslog.h>
+
+#ifdef DEBUG
+#define DEBUG_TEST 1
+#else
+#define DEBUG_TEST 0
+#endif
+
+#define LOGDEBUG(...) do { if (DEBUG_TEST) syslog(LOG_MAKEPRI(LOG_USER, LOG_DEBUG),  __VA_ARGS__); } while (0)
+
 
 int
 stringcontains(const char *haystack_start, const char *needle_start,  npy_intp max_haystack_len, npy_intp max_needle_len)
@@ -544,14 +530,11 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp m
 
     const char *haystack = haystack_start;
     const char *needle = needle_start;    
-    bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */
-
-    #ifdef DEBUG
-        printf("\n\nhaystack_start #%.20s#\n", haystack_start);
-        printf("haystack_len %ld\n", haystack_len);
-        printf("needle_start #%.20s#\n", needle_start);
-        printf("needle_len %ld\n", needle_len);
-    #endif
+    bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */    
+    LOGDEBUG("\n\nhaystack_start #%.20s#\n", haystack_start);
+    LOGDEBUG("haystack_len %ld\n", haystack_len);
+    LOGDEBUG("needle_start #%.20s#\n", needle_start);
+    LOGDEBUG("needle_len %ld\n", needle_len);
 
     if(haystack_len<needle_len)
         return 0;
@@ -566,9 +549,7 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp m
     }
     if (ok)
     {
-      #ifdef DEBUG
-        printf("needle is prefix of haystack => return 1");
-      #endif
+      LOGDEBUG("needle is prefix of haystack => return 1");
       return 1;
     }
 
@@ -582,10 +563,8 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp m
                                      (const unsigned char *) needle_start, needle_len) ;
         int ptrcomp = res != NULL;    
 
-        #ifdef DEBUG
-            printf("\ntwo_way_short_needle: %.20s\n", res);
-            printf("\nreturn %d", ptrcomp);
-        #endif
+        LOGDEBUG("\ntwo_way_short_needle: %.20s\n", res);
+        LOGDEBUG("\nreturn %d", ptrcomp);
 
         return ptrcomp;
     }
@@ -595,75 +574,10 @@ stringcontains(const char *haystack_start, const char *needle_start,  npy_intp m
     
     int ptrcomp2 = res != NULL ? 1 : 0;
     
-    #ifdef DEBUG
-        printf("\ntwo_way_long_needle: %.20s\n", res);
-        printf("\nreturn %d", ptrcomp2);
-    #endif
+    LOGDEBUG("\ntwo_way_long_needle: %.20s\n", res);
+    LOGDEBUG("\nreturn %d", ptrcomp2);
     
     return ptrcomp2;
-
-}
-
-// WORKS!
-int
-stringcontains2(const char *haystack_start, const char *needle_start,  npy_intp max_haystack_len, npy_intp max_needle_len)
-{
-  // needle_len - Length of NEEDLE.
-  // haystack_len - Known minimum length of HAYSTACK.
-  size_t haystack_len = fminl(max_haystack_len, strlen(haystack_start));
-  size_t needle_len = fminl(max_needle_len, strlen(needle_start));
-
-  const char *haystack = haystack_start;
-  const char *needle = needle_start;    
-  bool ok = true; /* True if NEEDLE is prefix of HAYSTACK.  */
-
-  printf("\n\nhaystack_start #%.20s#\n", haystack_start);
-  printf("haystack_len %ld\n", haystack_len);
-  printf("needle_start #%.20s#\n", needle_start);
-  printf("needle_len %ld\n", needle_len);   
-
-
-  /* Determine length of NEEDLE, and in the process, make sure
-     HAYSTACK is at least as long (no point processing all of a long
-     NEEDLE if HAYSTACK is too short).  */
-/*  while (*haystack && *needle)
-    ok &= *haystack++ == *needle++;
-  if (*needle)
-    return NULL;
-  if (ok)
-    return (char *) haystack_start;*/
-
-  /* Reduce the size of haystack using strchr, since it has a smaller
-     linear coefficient than the Two-Way algorithm.  */
-
-
-/*  needle_len = needle - needle_start;
-  haystack = strchr (haystack_start + 1, *needle_start);
-  if (!haystack || __builtin_expect (needle_len == 1, 0))
-    return (char *) haystack != NULL;
-  needle -= needle_len;
-  haystack_len = (haystack > haystack_start + needle_len ? 1
-                  : needle_len + haystack_start - haystack);
-
-
-*/
-
-
-  /* Perform the search.  Abstract memory is considered to be an array
-     of 'unsigned char' values, not an array of 'char' values.  See
-     ISO C 99 section 6.2.6.1.  */
-  if (needle_len < LONG_NEEDLE_THRESHOLD)
-  {
-    char* res =     two_way_short_needle ((const unsigned char *) haystack,
-                                 haystack_len,
-                                 (const unsigned char *) needle, needle_len);
-    printf("two_way_short_needle %.20s", res);
-    return res != NULL;
-}
-  char *res2 = two_way_long_needle ((const unsigned char *) haystack, haystack_len,
-                              (const unsigned char *) needle, needle_len);
-
-  return res2 != NULL;
 
 }
 
